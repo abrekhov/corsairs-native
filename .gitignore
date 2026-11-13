@@ -1,0 +1,9 @@
+/build/
+/.venv/
+/.local/
+/runtime/
+/.pi/
+__pycache__/
+.DS_Store
+*.dylib
+*.log

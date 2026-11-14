@@ -87,7 +87,13 @@ void RAIN::GenerateRain()
 
     entid_t ent;
     if (!(ent = core.GetEntityId("weather")))
-        throw std::runtime_error("No found WEATHER entity!");
+    {
+        // macOS port: the weather entity can be absent during scene transitions
+        // (e.g. full entity reset on death/load). Rendering rain is pointless
+        // without weather data, so skip this pass instead of aborting the game.
+        core.Trace("RAIN: weather entity not found yet; skipping rain generation");
+        return;
+    }
     pWeather = static_cast<WEATHER_BASE *>(core.GetEntityPointer(ent));
     Assert(pWeather);
 

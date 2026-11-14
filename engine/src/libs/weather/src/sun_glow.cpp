@@ -62,9 +62,17 @@ void SUNGLOW::SetDevice()
     Assert(pCollide);
 
     if (!(ent = core.GetEntityId("weather")))
-        throw std::runtime_error("No found WEATHER entity!");
-    pWeather = static_cast<WEATHER_BASE *>(core.GetEntityPointer(ent));
-    Assert(pWeather);
+    {
+        // macOS port: tolerate a missing weather entity during scene transitions;
+        // sun glow rendering is skipped until weather is created.
+        core.Trace("SUNGLOW: weather entity not found yet; sun glow disabled");
+        pWeather = nullptr;
+    }
+    else
+    {
+        pWeather = static_cast<WEATHER_BASE *>(core.GetEntityPointer(ent));
+        Assert(pWeather);
+    }
 
     if (ent = core.GetEntityId("sky"))
         pSky = static_cast<SKY *>(core.GetEntityPointer(ent));
@@ -157,7 +165,7 @@ void SUNGLOW::Execute(uint32_t Delta_Time)
 
 float SUNGLOW::LayerTrace(CVECTOR &vSrc, entity_container_cref its) const
 {
-    if (its.empty())
+    if (its.empty() || pWeather == nullptr)
         return 2.0f;
 
     CVECTOR vDst;
@@ -168,6 +176,8 @@ float SUNGLOW::LayerTrace(CVECTOR &vSrc, entity_container_cref its) const
 
 void SUNGLOW::Realize(uint32_t Delta_Time)
 {
+    if (pWeather == nullptr)
+        return;
     CMatrix OldMatrix, IMatrix, View;
     pRS->GetTransform(D3DTS_VIEW, OldMatrix);
     pRS->GetTransform(D3DTS_VIEW, View);
@@ -320,6 +330,8 @@ void SUNGLOW::Realize(uint32_t Delta_Time)
 
 void SUNGLOW::DrawSunMoon()
 {
+    if (pWeather == nullptr)
+        return;
     const auto fGlowSize = bMoon ? Glow.fMoonSize : Glow.fSunSize;
 
     float fFov;
@@ -550,7 +562,7 @@ uint32_t SUNGLOW::AttributeChanged(ATTRIBUTES *pAttribute)
 
 void SUNGLOW::DrawReflection() const
 {
-    if (!bHaveReflection)
+    if (!bHaveReflection || pWeather == nullptr)
         return;
 
     float fFov;

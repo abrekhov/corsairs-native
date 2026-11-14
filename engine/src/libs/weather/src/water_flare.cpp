@@ -50,7 +50,12 @@ void WATERFLARE::SetDevice()
 
     entid_t ent;
     if (!(ent = core.GetEntityId("weather")))
-        throw std::runtime_error("No found WEATHER entity!");
+    {
+        // macOS port: tolerate a missing weather entity during scene transitions.
+        core.Trace("WATERFLARE: weather entity not found yet; water flare disabled");
+        pWeather = nullptr;
+        return;
+    }
     pWeather = static_cast<WEATHER_BASE *>(core.GetEntityPointer(ent));
 
     // UNGUARD

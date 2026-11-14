@@ -294,6 +294,7 @@ SDL_InitSubSystem(SDL_INIT_EVENTS | SDL_INIT_VIDEO);
     auto dwOldTime = SDL_GetTicks();
 
     isRunning = true;
+    bool frameError = false;
     fprintf(stderr, "[STEP] message loop starting (rbg=%d)\n", (int)run_in_background); fflush(stderr);
     while (isRunning)
     {
@@ -323,13 +324,21 @@ SDL_InitSubSystem(SDL_INIT_EVENTS | SDL_INIT_VIDEO);
             }
             catch (const dxvk::DxvkError &e)
             {
+                // macOS port: a frame-level error must not abort the process
+                // (SIGABRT loses the session without cleanup or a readable log).
                 fprintf(stderr, "[FRAME-DXVK] %s\n", e.message().c_str()); fflush(stderr);
-                throw;
+                spdlog::critical("frame error: {}", e.message());
+                frameError = true;
             }
             catch (const std::exception &e)
             {
                 fprintf(stderr, "[FRAME-EXC] %s\n", e.what()); fflush(stderr);
-                throw;
+                spdlog::critical("frame error: {}", e.what());
+                frameError = true;
+            }
+            if (frameError)
+            {
+                isRunning = false;
             }
         }
         else
@@ -355,5 +364,5 @@ SDL_InitSubSystem(SDL_INIT_EVENTS | SDL_INIT_VIDEO);
 #endif
     SDL_Quit();
 
-    return EXIT_SUCCESS;
+    return frameError ? EXIT_FAILURE : EXIT_SUCCESS;
 }

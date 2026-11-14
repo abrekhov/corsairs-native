@@ -453,7 +453,9 @@ bool ISLAND::CreateShadowMap(char *pDir, char *pName)
         static_cast<WEATHER_BASE *>(core.GetEntityPointer(core.GetEntityId("Weather")));
     if (pWeather == nullptr)
     {
-        throw std::runtime_error("No found WEATHER entity!");
+        // macOS port: tolerate a missing weather entity during scene transitions.
+        core.Trace("ISLAND: weather entity not found yet; skipping shadow map");
+        return false;
     }
 
     const std::filesystem::path path =

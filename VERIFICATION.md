@@ -18,6 +18,7 @@ Release preparation checks were performed on an existing Apple Silicon macOS dev
 | Audio backend | SDL audio device initializes; active mixer channels produce nonzero sample peaks |
 | Original user saves | Before/after hashes unchanged during package verification; no saves are included in the repository |
 | Public source audit | detect-secrets scan with remote verification disabled: zero findings; local user-path/infrastructure filters found only the intentional public GitHub clone URL |
+| Death-to-reload crash fix | Engine tolerates a missing weather entity during scene resets (rain/sun glow/water flare degrade, no abort); frame errors stop cleanly instead of SIGABRT. Regression `tests/weather-missing-e2e.py`: pre-fix engine aborts, fixed build exits 0; watchdog and save-state suites re-passed after the fix (engine build `7b53defe…`) |
 
 The real-game smoke run was windowed and ended at its independent watchdog deadline. That exit is not a normal game exit or proof that every quest/transition works. Screenshots and development logs are intentionally not included in the public repository.
 
